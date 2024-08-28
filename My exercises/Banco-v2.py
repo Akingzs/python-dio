@@ -1,13 +1,34 @@
-# Simple Bank system
+# Bank using function 
 
 # Features
+# - Create users
+# - Create accounts for users  
 # - Withdraw
 # - bank statement
 # - Deposit
 
-def withdraw(*, cpf, value, withdraw_limit, withdraw_count):
+def withdraw(*, cpf, account_nb, withdraw_value, withdraw_limit = 500.0):
+    withdraw_validation = user_validation(cpf)
+    account_validation_ = account_validation(account_nb)
+    # If cpf is already in database
+    if not withdraw_validation and account_validation_: 
+        print(f'Withdraw value: {withdraw_value}\n')
+        user_filtered = [account for account in accounts if account['user'] == cpf]
+        withdraw_count = user_filtered[0]['withdraw_count']
 
-    return statement
+        if withdraw_count <= 3 and withdraw_value <= withdraw_limit:
+            user_filtered[0]['balance'] -= withdraw_value
+            user_filtered[0]['withdraw_count'] += 1
+            user_filtered[0]['account_statement'].append(f'- ${withdraw_value}')
+            print('#### OPERATION COMPLETED SUCCESSFULLY ####')
+
+    elif withdraw_value > 500.0:
+        print('#### OPERATION ERRROR ####\nWithdraw value above $500')
+    elif withdraw_count <= 3:
+        print('#### OPERATION ERRROR ####\n')
+        print('#### OPERATION DAILY LIMIT REACHED ####\n')
+
+    return None
 
 def deposit(cpf, account_nb, value, /):
     deposit_validation = user_validation(cpf)
@@ -16,19 +37,24 @@ def deposit(cpf, account_nb, value, /):
     if not deposit_validation and account_validation_:
         print(f'Deposit value: {value}\n')
         user_filtered = [account for account in accounts if account['user'] == cpf]
-
         user_filtered[0]['balance'] += value
+        user_filtered[0]['account_statement'].append(f'+ ${value}')
 
-        print(user_filtered)
+        print('#### OPERATION COMPLETED SUCCESSFULLY ####\n')
+    else:
+        print('#### OPERATION ERRROR ####\n')
+    return None
+
+def statement(cpf ,account_nb):
+    withdraw_validation = user_validation(cpf)
+    account_validation_ = account_validation(account_nb)
+
+    if not withdraw_validation and account_validation_: 
+        user_filtered = [account for account in accounts if account['user'] == cpf]
+        print(user_filtered[0]['account_statement'])
 
 
     return 
-
-
-
-def statement(balance, /,*,statement):
-
-    return statement
 
 def user_validation(cpf):
     for user in users:
@@ -47,7 +73,7 @@ def account_validation(account_nb):
     return False
 
 def new_user():
-    cpf = str(input('Enter your CPF. Only numbers!'))
+    cpf = str(input('Enter your CPF. Only numbers!\n'))
     if len(cpf) == 10:
         # Check if user already exists
         validation = user_validation(cpf)
@@ -60,10 +86,12 @@ def new_user():
                            'name': name,
                            'birth_date': birth_date,
                            'address': address})
+            print('#### OPERATION COMPLETED SUCCESSFULLY ####\n')
         else:
+            print('#### OPERATION ERROR ####\n')
             print("You can't create a new user. Your CPF already is in our database ")
 
-def new_account(cpf, balance = 0.0, withdraw_count = 0):
+def new_account(cpf, balance = 0.0, withdraw_count = 0, /):
     validation_acount = user_validation(cpf)
     if not validation_acount:
         global account_creation_iterator
@@ -74,9 +102,11 @@ def new_account(cpf, balance = 0.0, withdraw_count = 0):
                         'agency': '0001',
                         'account_nb': account_creation_iterator,
                         'balance': balance,
-                        'withdraw_count': withdraw_count
+                        'withdraw_count': withdraw_count,
+                        'account_statement': []
                         })
-        print(f'Account: {account_creation_iterator} | agency: 0001, created for the CPF: {cpf}')
+        print('#### OPERATION COMPLETED SUCCESSFULLY ####')
+        print(f'Account: {account_creation_iterator} | agency: 0001, created for the CPF: {cpf}\n')
 
         
     else: 
@@ -92,7 +122,7 @@ statement_history = []
 account_creation_iterator = 0
 
 while True:
-    a = input('Select an option: ')
+    a = input('Select an option:\n1 - Create new user\n2 - Create new account\n3 - Deposit\n4 - Withdraw\n5 - Bank Statement\n9 - Exit\n')
 
     if a == '1':
         new_user()
@@ -104,38 +134,17 @@ while True:
         account_nb = input('Number account: ')
         deposit_value = float(input('Deposit value: '))
         deposit(cpf,account_nb,deposit_value)
+    elif a == '4':
+        cpf = input('Enter CPF: ')
+        account_nb = input('Number account: ')
+        withdraw_value = float(input('Withdraw value: '))
+        withdraw(cpf = cpf,account_nb = account_nb , withdraw_value = withdraw_value)
+    elif a == '5':
+        cpf = input('Enter CPF: ')
+        account_nb = input('Number account: ')
+        statement(cpf = cpf,account_nb = account_nb)
+
     elif a == '9':
         break
 
-# while True:
-#     action = input('Please select an operation:\n (a) - Withdraw\n (b) - Bank Statement\n (c) - Deposit\n (d) - Exit\n')
-
-#     if  action.upper() == 'D':
-#         break
-#     # Withdraw action
-#     elif action.upper() == 'A':
-#         withdraw_action = float(input('How much do you want to withdraw: \n'))
-#         if withdraw_action > account_balance:
-#             print(f"You don't have enough balance to withdraw, your current balance is: {account_balance}\n")   
-#         elif  withdraw_count == 3:
-#             print('You have reached the daily withdraw limit ')
-#         elif withdraw_action > 500:
-#             print('OPERATION FAILED\nThe withdraw limit is $500\n')
-#         else:
-#             statement_history.append(f'-${withdraw_action}')
-#             withdraw_count += 1
-    
-#     #Bank Statement           
-#     elif action.upper() == 'B':
-#         print('Bank Statement')
-#         if len(statement_history) == 0:
-#             print('No transactions to show')
-#         for action in statement_history:
-#             print(f'{action}',end='\n')
-    
-#     #Deposit action 
-#     elif action.upper() == 'C':
-#         deposit_action = float(input('How much do you want to deposit: '))
-#         account_balance += deposit_action
-#         statement_history.append(f'+${deposit_action}')
 
